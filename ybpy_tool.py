@@ -6,6 +6,9 @@ import os
 import sys
 import time
 import re
+import logging #日志模块
+#logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 '''
 导入模块 
 import sys
@@ -22,6 +25,11 @@ chec_code(content) #content字典类型，各种格式匹配
 
 
 '''
+#sys._getframe().f_back.f_code.co_name #获取调用函数名
+#sys._getframe().f_back.f_lineno     #获取行号
+#sys._getframe().f_code.co_name # 获取当前函数名
+
+
 def get_fname(fname,fileurl='./',mode = 0): #获取目录文件
     excfile = []
     info = os.getcwd()
@@ -29,33 +37,37 @@ def get_fname(fname,fileurl='./',mode = 0): #获取目录文件
         listfile = os.listdir(info)
     else:
         listfile = os.listdir(fileurl)
-    if mode = 0:
+    if mode == 0:
         for tmp in fname:
-            listnum = listfile.index(tmp)
-            excfile.append(listfile[listnum])
-            listfile.remove(tmp)
+            try:
+                listnum = listfile.index(tmp)
+            except:
+                logging.info('没找到文件:%s',tmp)
+            else:
+                excfile.append(listfile[listnum])
+                listfile.remove(tmp)
         redata = listfile,excfile
         return redata
-    elif mode = 1:
+    elif mode == 1:
         for tmp in fname:
             listnum = listfile.index(tmp)
             excfile.append(listfile[listnum])
         return excfile
-    elif mode = 2:
+    elif mode == 2:
         return listfile
     else:
-        print "get_fname 参数错误"
+        logging.info("get_fname 参数错误")
         return -1
 
 def mkdir(path): #创建目录
     path = path.strip()
     isExists = os.path.exists(path)
     if not isExists:
-        print "创建目录",path
+        logging.info("创建目录:%s",path)
         os.makedirs(path)
         return True
     else:
-        print "目录存在",path
+        logging.info("目录存在:%s",path)
         return False
 
 def get_time(ms = 0): #获取时间，输入参数为获取毫秒时间
@@ -74,12 +86,12 @@ def file_rall(fileurl,readm="rU"): #读取文件，返回所有内容
     try:
         file_object = open(fileurl,readm) #使用rU 表示读取时候会把\r \n \r\n 替换为\n
     except:
-        print "文件%s 读取失败" %fileurl
+        logging.info("文件%s 打开失败",fileurl)
         return -1
     try:
         all_text = file_object.read()
     except:
-        print "文件%s 读取失败" %fileurl
+        logging.info("文件%s 读取失败",fileurl)
         file_object.close()
         return -1
     file_object.close()
@@ -97,17 +109,17 @@ def file_rline(fileurl,readm="r"):#读取文件，返回一行
         try:
            ybpy_tool_file_object = open(fileurl,readm) #使用rU 表示读取时候会把\r \n \r\n 替换为\n
         except:
-            print "文件%s 读取失败" %fileurl
+            logging.info("文件%s 打开失败",fileurl)
             return -1
     try:
         all_text = ybpy_tool_file_object.readline()
     except:
-        print "文件%s 读取失败" %fileurl
+        logging.info("文件%s 读取失败",fileurl)
         ybpy_tool_file_object.close()
         return -1
     if not all_text:
-        print "删除了文件函数"
-        #ybpy_tool_file_object.close()
+       # print "删除了文件函数"
+        ybpy_tool_file_object.close()
         del ybpy_tool_file_object
         return 0
     return all_text
@@ -140,7 +152,7 @@ def conf_read(ftxt,fname="config.cf",dir_list="./"): #读取配置文件
                     retext[name]=all_text_lists[1].strip()
         return retext
     else:
-        print "无可用配置文件"
+        logging.info("无可用配置文件")
 
 def chec_code(content): #各种格式匹配
     rule = {'email':'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$',
@@ -150,11 +162,11 @@ def chec_code(content): #各种格式匹配
     for yzname in content:
         patter = rule[yzname]
         if not patter:
-            print "规则未定义:%s" %yzname
+            logging.info("规则未定义:%s",yzname)
             return -1
         info = re.findall(patter,content[yzname])
         if not info:
-            print "匹配失败 %s: %s" %(yzname,content[yzname])
+            logging.info("匹配失败 %s: %s",yzname,content[yzname])
             return -1
     return 0
 
