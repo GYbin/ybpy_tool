@@ -13,14 +13,15 @@ sys.path.append('父目录的路径')
 ===================================
 函数介绍
 log_config() #日志记录设置
-get_fname(fname,fileurl='./',mode = 0) #fname为列表获取目录文件
+get_fname(fname,fileurl='./',mode = 0) #fname为列表获取目录文件,
+                                       该函数也可用于判断文件是否存在。
 mkdir(path) #创建目录
 get_time(ms = 0) #获取时间，使用参数获取毫秒级时间戳
 file_rall(fileurl,readm="rU") #读取文件，返回所有内容
 file_rline(fileurl,readm="r") #读取文件，每次返回一行
 conf_read(ftxt,fname="config.cf",dir_list="./") #ftxt为列表，读取文件配置内容
 chec_code(content) #content字典类型，各种格式匹配
-
+crack_rar(fname,fpasswd) #暴力破解RAR文件
 ===================================
 随笔记录
 #logging.basicConfig(level=logging.INFO)
@@ -39,10 +40,12 @@ def log_config():
     fh.setLevel(logging.INFO)
     #在创建一个handler，用于输出到控制台
     ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
+    ch.setLevel(logging.INFO)
+    #ch.setLevel(logging.DEBUG)
     #ch.setLevel(logging.WARNING)
     # 定义handler输出格式
-    formatter = logging.Formatter("%(asctime)s - %(filename)s - %(levelname)s: %(message)s")
+    #formatter = logging.Formatter("%(asctime)s - %(filename)s - %(levelname)s: %(message)s")
+    formatter = logging.Formatter("%(asctime)s - %(filename)s.%(funcName)s - %(levelname)s: %(message)s")
     fh.setFormatter(formatter)
     ch.setFormatter(formatter)
     #将logger添加到handler里面
@@ -57,6 +60,16 @@ def get_fname(fname,fileurl='./',mode = 0): #获取目录文件
     else:
         listfile = os.listdir(fileurl)
     if mode == 0:
+        if not isinstance(fname,list):
+            try:
+                listnum = listfile.index(fname)
+            except:
+                logger.error('没找到文件:%s',fname)
+            else:
+                excfile.append(listfile[listnum])
+                listfile.remove(fname)
+            redata = listfile,excfile
+            return redata
         for tmp in fname:
             try:
                 listnum = listfile.index(tmp)
@@ -67,13 +80,25 @@ def get_fname(fname,fileurl='./',mode = 0): #获取目录文件
                 listfile.remove(tmp)
         redata = listfile,excfile
         return redata
-    elif mode == 1:
+    elif mode == 1: 
+        if not isinstance(fname,list):
+            try:
+                listnum = listfile.index(fname)
+            except:
+                logger.error('没找到文件:%s',fname)
+            else:
+                excfile.append(listfile[listnum])
+                return excfile
         for tmp in fname:
-            listnum = listfile.index(tmp)
-            excfile.append(listfile[listnum])
+            try:
+                listnum = listfile.index(tmp)
+            except:
+                logger.error('没找到文件:%s',tmp)
+            else:
+                excfile.append(listfile[listnum])
         return excfile
     elif mode == 2:
-        return listfile
+        return listfile #返回目录所有文件
     else:
         logger.error("get_fname 参数错误")
         return -1
@@ -123,6 +148,11 @@ def file_rline(fileurl,readm="r"):#读取文件，返回一行
         ybpy_tool_file_object
     except:
         ifbl = 1
+    if readm == 'c' and ifbl == 0:
+        ybpy_tool_file_object.close()
+        logger.warning("文件关闭：%s",fileurl)
+        del ybpy_tool_file_object
+        return 0
     if ifbl:
         #print "打开文件"
         try:
@@ -139,6 +169,7 @@ def file_rline(fileurl,readm="r"):#读取文件，返回一行
     if not all_text:
        # print "删除了文件函数"
         ybpy_tool_file_object.close()
+        logger.warning("文件关闭：%s",fileurl)
         del ybpy_tool_file_object
         return 0
     return all_text
@@ -173,6 +204,52 @@ def conf_read(ftxt,fname="config.cf",dir_list="./"): #读取配置文件
     else:
         logger.error("无可用配置文件")
 
+def file_write(wrname,wrurl='./',wrmode=1):
+    global ybpy_tool_file_write_num
+    global ybpy_tool_file_write_open
+    ifbl = 0
+    try :
+        ybpy_tool_file_write_num
+    except:
+        ifbl = 1
+    if wrmode == 0 and ifbl == 0:
+        ybpy_tool_file_write_open.close()
+        del ybpy_tool_file_write_open
+        del ybpy_tool_file_write_num
+        return 0
+    if ifbl:
+        #print "打开文件"
+        try:
+           ybpy_tool_file_write_open = open(wrurl,'a+') #使用rU 表示读取时候会把\r \n \r\n 替换为\n
+        except:
+            logger.error("文件%s 打开失败",wrurl)
+            return -1
+        ybpy_tool_file_write_num = 0
+    try:
+        ybpy_tool_file_write_open.write(wrname)
+    except:
+        logger.error("文件%s 写入失败",wrurl)
+        ybpy_tool_file_write_open.close()
+        del ybpy_tool_file_write_open
+        del ybpy_tool_file_write_num
+        return -1
+    ybpy_tool_file_write_num  += 1
+    if ybpy_tool_file_write_open >= wrmode :
+       # print "删除了文件函数"
+        ybpy_tool_file_write_open.close()
+        del ybpy_tool_file_write_open
+        del ybpy_tool_file_write_num
+        return 0
+    return 0
+
+
+    if wrmode == 1:
+        ybpy_tool_file_write_num = 0
+    else:
+        global ybpy_tool_file_write_num
+        ybpy_tool_file_write_num = 0
+
+
 def chec_code(content): #各种格式匹配
     rule = {'email':'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$',
             'sfzid18':'^\d{17}[\d|x|X]',
@@ -189,4 +266,13 @@ def chec_code(content): #各种格式匹配
             return -1
     return 0
 
-
+def crack_rar(fname,fpasswd):
+    #先将unrar加入环境变量
+    cra_pwd = "unrar x %s -y -p%s" %(fname,fpasswd)
+    cmd_run = os.system(cmd)
+    if cmd_rum == 1 or cmd_rum == 0: #返回值是0或者是1，密码正确
+        logger.warning("找到密码：%s",fpasswd)
+        return 0
+    else:
+        logger.error("密码错误：%s 。返回值：%d",fpasswd,cmd_rum)
+        return -1
