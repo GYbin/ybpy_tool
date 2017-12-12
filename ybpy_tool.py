@@ -1,19 +1,18 @@
 #!/usr/bin/python
 #-*- coding: UTF-8 -*-
-
-
 import os
 import sys
 import time
 import re
 import logging #日志模块
-#logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
+
 '''
 导入模块 
 import sys
 sys.path.append('父目录的路径')
 ===================================
+函数介绍
+log_config() #日志记录设置
 get_fname(fname,fileurl='./',mode = 0) #fname为列表获取目录文件
 mkdir(path) #创建目录
 get_time(ms = 0) #获取时间，使用参数获取毫秒级时间戳
@@ -22,13 +21,33 @@ file_rline(fileurl,readm="r") #读取文件，每次返回一行
 conf_read(ftxt,fname="config.cf",dir_list="./") #ftxt为列表，读取文件配置内容
 chec_code(content) #content字典类型，各种格式匹配
 
-
-
-'''
+===================================
+随笔记录
+#logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.DEBUG,name=__name__)
 #sys._getframe().f_back.f_code.co_name #获取调用函数名
 #sys._getframe().f_back.f_lineno     #获取行号
 #sys._getframe().f_code.co_name # 获取当前函数名
-
+'''
+def log_config():
+    global logger
+    logger = logging.getLogger() #创建一个logger
+    logger.setLevel(logging.INFO) #LOG等级总开关
+    #创建一个handler,用于写入文件
+    logfile = './log/logger.txt'
+    fh = logging.FileHandler(logfile,mode='w')
+    fh.setLevel(logging.INFO)
+    #在创建一个handler，用于输出到控制台
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    #ch.setLevel(logging.WARNING)
+    # 定义handler输出格式
+    formatter = logging.Formatter("%(asctime)s - %(filename)s - %(levelname)s: %(message)s")
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    #将logger添加到handler里面
+    logger.addHandler(fh)
+    logger.addHandler(ch)
 
 def get_fname(fname,fileurl='./',mode = 0): #获取目录文件
     excfile = []
@@ -42,7 +61,7 @@ def get_fname(fname,fileurl='./',mode = 0): #获取目录文件
             try:
                 listnum = listfile.index(tmp)
             except:
-                logging.info('没找到文件:%s',tmp)
+                logger.error('没找到文件:%s',tmp)
             else:
                 excfile.append(listfile[listnum])
                 listfile.remove(tmp)
@@ -56,18 +75,18 @@ def get_fname(fname,fileurl='./',mode = 0): #获取目录文件
     elif mode == 2:
         return listfile
     else:
-        logging.info("get_fname 参数错误")
+        logger.error("get_fname 参数错误")
         return -1
 
 def mkdir(path): #创建目录
     path = path.strip()
     isExists = os.path.exists(path)
     if not isExists:
-        logging.info("创建目录:%s",path)
+        logger.info("创建目录:%s",path)
         os.makedirs(path)
         return True
     else:
-        logging.info("目录存在:%s",path)
+        logger.info("目录存在:%s",path)
         return False
 
 def get_time(ms = 0): #获取时间，输入参数为获取毫秒时间
@@ -86,12 +105,12 @@ def file_rall(fileurl,readm="rU"): #读取文件，返回所有内容
     try:
         file_object = open(fileurl,readm) #使用rU 表示读取时候会把\r \n \r\n 替换为\n
     except:
-        logging.info("文件%s 打开失败",fileurl)
+        logger.error("文件%s 打开失败",fileurl)
         return -1
     try:
         all_text = file_object.read()
     except:
-        logging.info("文件%s 读取失败",fileurl)
+        logger.error("文件%s 读取失败",fileurl)
         file_object.close()
         return -1
     file_object.close()
@@ -109,12 +128,12 @@ def file_rline(fileurl,readm="r"):#读取文件，返回一行
         try:
            ybpy_tool_file_object = open(fileurl,readm) #使用rU 表示读取时候会把\r \n \r\n 替换为\n
         except:
-            logging.info("文件%s 打开失败",fileurl)
+            logger.error("文件%s 打开失败",fileurl)
             return -1
     try:
         all_text = ybpy_tool_file_object.readline()
     except:
-        logging.info("文件%s 读取失败",fileurl)
+        logger.error("文件%s 读取失败",fileurl)
         ybpy_tool_file_object.close()
         return -1
     if not all_text:
@@ -152,7 +171,7 @@ def conf_read(ftxt,fname="config.cf",dir_list="./"): #读取配置文件
                     retext[name]=all_text_lists[1].strip()
         return retext
     else:
-        logging.info("无可用配置文件")
+        logger.error("无可用配置文件")
 
 def chec_code(content): #各种格式匹配
     rule = {'email':'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$',
@@ -162,11 +181,11 @@ def chec_code(content): #各种格式匹配
     for yzname in content:
         patter = rule[yzname]
         if not patter:
-            logging.info("规则未定义:%s",yzname)
+            logger.error("规则未定义:%s",yzname)
             return -1
         info = re.findall(patter,content[yzname])
         if not info:
-            logging.info("匹配失败 %s: %s",yzname,content[yzname])
+            logger.error("匹配失败 %s: %s",yzname,content[yzname])
             return -1
     return 0
 
