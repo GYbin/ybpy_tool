@@ -20,6 +20,7 @@ get_time(ms = 0) #获取时间，使用参数获取毫秒级时间戳
 file_rall(fileurl,readm="rU") #读取文件，返回所有内容
 file_rline(fileurl,readm="r") #读取文件，每次返回一行
 conf_read(ftxt,fname="config.cf",dir_list="./") #ftxt为列表，读取文件配置内容
+file_write(wrname,wrurl='./',wrmode=1)  内容写入，wrmode=0 时关闭文件
 chec_code(content) #content字典类型，各种格式匹配
 crack_rar(fname,fpasswd) #暴力破解RAR文件
 ===================================
@@ -241,14 +242,6 @@ def file_write(wrname,wrurl='./',wrmode=1):
         del ybpy_tool_file_write_num
         return 0
     return 0
-
-
-    if wrmode == 1:
-        ybpy_tool_file_write_num = 0
-    else:
-        global ybpy_tool_file_write_num
-        ybpy_tool_file_write_num = 0
-
 
 def chec_code(content): #各种格式匹配
     rule = {'email':'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$',
