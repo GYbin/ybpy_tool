@@ -18,7 +18,7 @@ get_fname(fname,fileurl='./',mode = 0) #fname为列表获取目录文件,
 mkdir(path) #创建目录
 get_time(ms = 0) #获取时间，使用参数获取毫秒级时间戳
 file_rall(fileurl,readm="rU") #读取文件，返回所有内容
-file_rline(fileurl,readm="r") #读取文件，每次返回一行
+file_rline(fileurl,readm="r") #读取文件，每次返回一行,readm="c" 关闭文件
 conf_read(ftxt,fname="config.cf",dir_list="./") #ftxt为列表，读取文件配置内容
 file_write(wrname,wrurl='./',wrmode=1)  内容写入，wrmode=0 时关闭文件
 chec_code(content) #content字典类型，各种格式匹配
@@ -31,12 +31,19 @@ crack_rar(fname,fpasswd) #暴力破解RAR文件
 #sys._getframe().f_back.f_lineno     #获取行号
 #sys._getframe().f_code.co_name # 获取当前函数名
 '''
-def log_config():
+def log_config(log_name = 'logger.txt',log_dir = './log/'):
     global logger
     logger = logging.getLogger() #创建一个logger
     logger.setLevel(logging.INFO) #LOG等级总开关
     #创建一个handler,用于写入文件
-    logfile = './log/logger.txt'
+    logfile = log_dir + log_name
+    if os.path.exists(log_dir+log_name):
+        soufile = log_dir+log_name
+        splfile = log_name.split('.')
+        deffile = log_dir+splfile[0]+'-'+get_time('a')+'.'+splfile[1]
+        os.rename(soufile,deffile)
+    file_open = open(logfile,'a+')
+    file_open.close()
     fh = logging.FileHandler(logfile,mode='w')
     fh.setLevel(logging.INFO)
     #在创建一个handler，用于输出到控制台
@@ -244,10 +251,10 @@ def file_write(wrname,wrurl='./',wrmode=1):
     return 0
 
 def chec_code(content): #各种格式匹配
-    rule = {'email':'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$',
+    rule = {'email':'^[a-zA-Z0-9_-\.]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$',
             'sfzid18':'^\d{17}[\d|x|X]',
             'sfzid15':'^\d{14}[\d|x|X]',
-            'passwd':'^\w[\s|\S]{5,24}$'}
+            'passwd':'^\w[\s|\S]{4,24}$'}
     for yzname in content:
         patter = rule[yzname]
         if not patter:
