@@ -251,7 +251,7 @@ def file_write(wrname,wrurl='./',wrmode=1):
     return 0
 
 def chec_code(content): #各种格式匹配
-    rule = {'email':'^[a-zA-Z0-9_-\.]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$',
+    rule = {'email':'^[a-zA-Z0-9\._-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$',
             'sfzid18':'^\d{17}[\d|x|X]',
             'sfzid15':'^\d{14}[\d|x|X]',
             'passwd':'^\w[\s|\S]{4,24}$'}
